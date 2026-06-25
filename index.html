@@ -4821,125 +4821,312 @@ function discoAnalyze(p1, p2) {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// -----------------------------------------------------------------------
-// Public, read-only credentials. Safe to ship in client-side JS because:
-//   - this is the anon key, NOT the service_role key
-//   - RLS on `signals` only grants SELECT to anon (see supabase_schema.sql)
-//   - `system_config` (which holds the Upstox token) has zero anon policies
-// -----------------------------------------------------------------------
-const SUPABASE_URL = https://ancnqtwdtvsvsfetbjvq.supabase.co';
+// ═══════════════════════════════════════════════════════════════
+// SUPABASE SYNC LAYER
+// anon key only — safe for public. service_role lives in GitHub Secrets only.
+// ═══════════════════════════════════════════════════════════════
+const SUPABASE_URL      = 'https://ancnqtwdtvsvsfetbjvq.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFuY25xdHdkdHZzdnNmZXRianZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNzUxODMsImV4cCI6MjA5Nzg1MTE4M30.zv2K_lqebIv_Jq9aqUzrmth92Vx98ZISXtT_vaX8_Gc';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const MAX_ROWS_SHOWN = 50;
 
+// ── Connection status badge ──────────────────────────────────
 function setConnStatus(state) {
   const el = document.getElementById('live-conn-status');
   if (!el) return;
   const map = {
     connecting: ['CONNECTING…', 'var(--muted)'],
     live:       ['● LIVE',       'var(--accent)'],
-    error:      ['● DISCONNECTED', 'var(--red)'],
+    error:      ['● DISCONNECTED','var(--red)'],
   };
   const [label, color] = map[state] || map.connecting;
-  el.textContent = label;
-  el.style.color = color;
+  el.textContent = label; el.style.color = color;
 }
 
+// ── Signals table rendering ──────────────────────────────────
 function fmtSignalPill(type) {
-  const cls = { LONG: 'pill-long', SHORT: 'pill-short', WATCH: 'pill-watch' }[type] || 'pill-neutral';
-  return `<span class="signal-pill ${cls}">${type}</span>`;
+  const cls = {LONG:'pill-long',SHORT:'pill-short',WATCH:'pill-watch'}[type]||'pill-neutral';
+  return `<span class="signal-pill ${cls}">${type||'—'}</span>`;
 }
 
-function renderRow(row, isNew = false) {
-  return `
-    <tr data-id="${row.id}" class="${isNew ? 'row-flash' : ''}">
-      <td style="font-weight:700">${row.symbol_1} <span style="color:var(--muted)">/</span> ${row.symbol_2}</td>
-      <td>${fmtSignalPill(row.signal_type)}</td>
-      <td style="color:var(--accent3)">${Number(row.z_score).toFixed(2)}</td>
-      <td style="color:var(--green)">${Number(row.correlation).toFixed(3)}</td>
-      <td style="color:${row.p_value < 0.05 ? 'var(--green)' : 'var(--warn)'}">${Number(row.p_value).toFixed(3)}</td>
-      <td style="color:var(--accent)">${Number(row.composite_score).toFixed(0)}</td>
-      <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)">
-        ${new Date(row.generated_at).toLocaleTimeString('en-IN')}
-      </td>
-    </tr>`;
+function renderRow(row, isNew=false) {
+  // Support both old column names (symbol_1/signal_type/composite_score)
+  // and new column names (symbol1/signal/score) from our schema
+  const s1    = row.symbol_1   || row.symbol1   || '—';
+  const s2    = row.symbol_2   || row.symbol2   || '—';
+  const sig   = row.signal_type|| row.signal    || 'NEUTRAL';
+  const z     = Number(row.z_score    || 0).toFixed(2);
+  const corr  = Number(row.correlation|| 0).toFixed(3);
+  const pval  = Number(row.p_value    || 1);
+  const score = Number(row.composite_score || row.score || 0).toFixed(0);
+  const time  = row.generated_at || row.created_at || '';
+  return `<tr data-id="${row.id}" class="${isNew?'row-flash':''}">
+    <td style="font-weight:700">${s1} <span style="color:var(--muted)">/</span> ${s2}</td>
+    <td>${fmtSignalPill(sig)}</td>
+    <td style="color:var(--accent3)">${z}</td>
+    <td style="color:var(--green)">${corr}</td>
+    <td style="color:${pval<0.05?'var(--green)':'var(--warn)'}">${pval.toFixed(3)}</td>
+    <td style="color:var(--accent)">${score}</td>
+    <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)">${time?new Date(time).toLocaleTimeString('en-IN'):''}</td>
+  </tr>`;
 }
 
 function injectFlashStyleOnce() {
   if (document.getElementById('row-flash-style')) return;
-  const style = document.createElement('style');
-  style.id = 'row-flash-style';
-  style.textContent = `
-    @keyframes rowFlash { 0% { background: rgba(0,229,160,0.25); } 100% { background: transparent; } }
-    .row-flash { animation: rowFlash 1.6s ease-out; }
-  `;
-  document.head.appendChild(style);
+  const s = document.createElement('style'); s.id='row-flash-style';
+  s.textContent=`@keyframes rowFlash{0%{background:rgba(0,229,160,0.25)}100%{background:transparent}}.row-flash{animation:rowFlash 1.6s ease-out}`;
+  document.head.appendChild(s);
 }
 
 async function loadInitialSignals() {
   setConnStatus('connecting');
-  const { data, error } = await sb
-    .from('signals')
-    .select('*')
-    .order('generated_at', { ascending: false })
-    .limit(MAX_ROWS_SHOWN);
-
+  const {data,error} = await sb.from('signals').select('*')
+    .order('generated_at',{ascending:false}).limit(MAX_ROWS_SHOWN);
   const tbody = document.getElementById('live-signals-tbody');
   if (error) {
-    console.error('Failed to load signals:', error);
     setConnStatus('error');
-    if (tbody) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--red);padding:20px;">
-        Could not load signals — check Supabase URL/key.</td></tr>`;
-    }
+    if (tbody) tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--red);padding:20px">Could not load signals — ${error.message}</td></tr>`;
     return;
   }
-
-  if (tbody) {
-    tbody.innerHTML = data.length
-      ? data.map(row => renderRow(row)).join('')
-      : `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px;">
-           No signals yet — waiting for the next scanner run.</td></tr>`;
-  }
+  if (tbody) tbody.innerHTML = data.length
+    ? data.map(r=>renderRow(r)).join('')
+    : `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">No signals yet — waiting for next scanner run.</td></tr>`;
 }
 
 function prependNewSignal(row) {
   injectFlashStyleOnce();
   const tbody = document.getElementById('live-signals-tbody');
   if (!tbody) return;
-
-  // Drop the placeholder "no signals yet" row if present
-  if (tbody.children.length === 1 && tbody.children[0].children.length === 1) {
-    tbody.innerHTML = '';
-  }
-
-  tbody.insertAdjacentHTML('afterbegin', renderRow(row, true));
-
-  // Trim to MAX_ROWS_SHOWN
-  while (tbody.children.length > MAX_ROWS_SHOWN) {
-    tbody.removeChild(tbody.lastElementChild);
-  }
+  if (tbody.children.length===1 && tbody.children[0].children.length===1) tbody.innerHTML='';
+  tbody.insertAdjacentHTML('afterbegin', renderRow(row,true));
+  while (tbody.children.length>MAX_ROWS_SHOWN) tbody.removeChild(tbody.lastElementChild);
 }
 
 function subscribeToLiveSignals() {
   sb.channel('signals-realtime')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'signals' }, (payload) => {
-      prependNewSignal(payload.new);
-    })
-    .subscribe((status) => {
-      if (status === 'SUBSCRIBED') setConnStatus('live');
-      else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setConnStatus('error');
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'signals'},(p)=>prependNewSignal(p.new))
+    .subscribe((status)=>{
+      if (status==='SUBSCRIBED') setConnStatus('live');
+      else if (status==='CHANNEL_ERROR'||status==='TIMED_OUT') setConnStatus('error');
     });
 }
 
-// -----------------------------------------------------------------------
-// Boot
-// -----------------------------------------------------------------------
+// ════════════════════════════════════════════════════════════════
+// TOKEN AUTO-LOAD
+// GitHub Actions writes the fresh Upstox token to system_config
+// every morning. On page open we read it and auto-fill the field.
+// ════════════════════════════════════════════════════════════════
+async function supaLoadToken() {
+  try {
+    const {data,error} = await sb.from('system_config')
+      .select('value').eq('key','upstox_access_token').single();
+    if (error || !data) return;
+    const token = data.value;
+    if (!token || token.length < 20) return;
+    // Fill the token input
+    const inp = document.getElementById('upstox-token');
+    if (inp && !inp.value) {
+      inp.value = token;
+      // Auto-connect
+      const connectBtn = document.querySelector('[onclick*="connectUpstox"], [onclick*="connect"]');
+      if (typeof connectUpstox === 'function') {
+        await connectUpstox();
+        addLog && addLog('✅ Upstox token auto-loaded from Supabase', 'ok');
+      }
+    }
+  } catch(e) { console.warn('Token auto-load:', e.message); }
+}
+
+// ════════════════════════════════════════════════════════════════
+// WATCHLIST SYNC
+// Replaces the localStorage-only saveWatchlist/loadWatchlist.
+// Schema (matches your actual Supabase watchlist table):
+//   id, symbol, notes, added_at
+// We store: symbol = "P1|P2", notes = JSON of full entry
+// This way we don't need to alter the existing table schema.
+// ════════════════════════════════════════════════════════════════
+async function supaWatchlistLoad() {
+  try {
+    const {data,error} = await sb.from('watchlist').select('*').order('added_at',{ascending:true});
+    if (error || !data || !data.length) return;
+    // Reconstruct watchlist array from symbol+notes columns
+    watchlist = data.map(row => {
+      try {
+        const parsed = JSON.parse(row.notes || '{}');
+        const [p1,p2] = (row.symbol||'|').split('|');
+        return {
+          p1: p1||'', p2: p2||'',
+          sector:     parsed.sector     || '',
+          threshold:  parsed.threshold  || 2.0,
+          z:          parsed.z          || null,
+          corr:       parsed.corr       || null,
+          lastChecked:parsed.lastChecked|| null,
+          alertState: parsed.alertState || 'neutral',
+          _supaId:    row.id,
+        };
+      } catch(e) { return null; }
+    }).filter(Boolean);
+    typeof renderWatchlist==='function' && renderWatchlist();
+    console.log(`✅ Watchlist: loaded ${watchlist.length} pairs from Supabase`);
+  } catch(e) { console.warn('Watchlist load:', e.message); }
+}
+
+async function supaWatchlistSave() {
+  // Called after every add/remove/update
+  try {
+    // Build rows for all current watchlist entries
+    const rows = watchlist.map(w => ({
+      symbol: `${w.p1}|${w.p2}`,
+      notes: JSON.stringify({
+        sector:     w.sector     || '',
+        threshold:  w.threshold  || 2.0,
+        z:          w.z          || null,
+        corr:       w.corr       || null,
+        lastChecked:w.lastChecked|| null,
+        alertState: w.alertState || 'neutral',
+      }),
+    }));
+
+    // Delete all existing rows then re-insert (simpler than tracking IDs)
+    await sb.from('watchlist').delete().neq('id', 0);  // delete all
+    if (rows.length > 0) {
+      const {error} = await sb.from('watchlist').insert(rows);
+      if (error) console.error('Watchlist save error:', error.message);
+      else console.log(`✅ Watchlist: saved ${rows.length} pairs to Supabase`);
+    }
+  } catch(e) { console.warn('Watchlist save:', e.message); }
+}
+
+// Patch saveWatchlist to also sync to Supabase
+const _origSaveWatchlist = window.saveWatchlist;
+window.saveWatchlist = function() {
+  // Save to localStorage (existing behaviour)
+  try { localStorage.setItem('nse_pt_watchlist', JSON.stringify(watchlist)); } catch(e){}
+  // Also sync to Supabase
+  supaWatchlistSave();
+};
+
+// ════════════════════════════════════════════════════════════════
+// PAPER TRADES SYNC
+// Supabase paper_trades table schema (from our schema.sql):
+//   id, user_id(null for anon), symbol1, symbol2, direction,
+//   entry_z, exit_z, entry_price1, entry_price2, exit_price1,
+//   exit_price2, capital, pnl, pnl_pct, entry_at, exit_at, status
+// ════════════════════════════════════════════════════════════════
+async function supaPaperTradesLoad() {
+  try {
+    const {data,error} = await sb.from('paper_trades')
+      .select('*').order('entry_at',{ascending:false}).limit(200);
+    if (error || !data || !data.length) return;
+
+    // Map Supabase rows → ptState format
+    const closed = data.filter(r=>r.status==='closed').map(r=>({
+      pair:     `${r.symbol1}/${r.symbol2}`,
+      dir:      r.direction,
+      entryZ:   r.entry_z,
+      exitZ:    r.exit_z,
+      entryP1:  r.entry_price1,
+      entryP2:  r.entry_price2,
+      exitP1:   r.exit_price1,
+      exitP2:   r.exit_price2,
+      capital:  r.capital,
+      pnl:      r.pnl,
+      pnlPct:   r.pnl_pct,
+      entryTime:r.entry_at,
+      exitTime: r.exit_at,
+      _dbId:    r.id,
+    }));
+
+    const open = data.find(r=>r.status==='open');
+    if (open) {
+      ptState.openTrade = {
+        pair:    `${open.symbol1}/${open.symbol2}`,
+        dir:     open.direction,
+        entryZ:  open.entry_z,
+        entryP1: open.entry_price1,
+        entryP2: open.entry_price2,
+        capital: open.capital,
+        _dbId:   open.id,
+      };
+      const exitBtn = document.getElementById('pt-exit-btn');
+      if (exitBtn) exitBtn.disabled = false;
+    }
+
+    // Merge: Supabase wins if it has more trades than localStorage
+    if (closed.length > (ptState.trades||[]).length) {
+      ptState.trades = closed;
+      typeof ptRender==='function' && ptRender();
+      console.log(`✅ Paper trades: loaded ${closed.length} trades from Supabase`);
+    }
+  } catch(e) { console.warn('Paper trades load:', e.message); }
+}
+
+async function supaPaperTradeSave(trade, status='open') {
+  if (!trade) return;
+  try {
+    const [sym1,sym2] = (trade.pair||'/').split('/');
+    const row = {
+      symbol1:      sym1 || '',
+      symbol2:      sym2 || '',
+      direction:    trade.dir    || 'LONG',
+      entry_z:      trade.entryZ || null,
+      exit_z:       trade.exitZ  || null,
+      entry_price1: trade.entryP1|| null,
+      entry_price2: trade.entryP2|| null,
+      exit_price1:  trade.exitP1 || null,
+      exit_price2:  trade.exitP2 || null,
+      capital:      trade.capital|| null,
+      pnl:          trade.pnl    || null,
+      pnl_pct:      trade.pnlPct || null,
+      status,
+      entry_at:     trade.entryTime || new Date().toISOString(),
+      exit_at:      status==='closed' ? (trade.exitTime||new Date().toISOString()) : null,
+    };
+    if (trade._dbId) {
+      // Update existing row
+      const {error} = await sb.from('paper_trades').update(row).eq('id', trade._dbId);
+      if (error) console.error('Trade update error:', error.message);
+    } else {
+      // Insert new row
+      const {data,error} = await sb.from('paper_trades').insert(row).select('id').single();
+      if (error) console.error('Trade insert error:', error.message);
+      else if (data) trade._dbId = data.id;
+    }
+  } catch(e) { console.warn('Paper trade save:', e.message); }
+}
+
+// Patch ptSave to also sync to Supabase
+const _origPtSave = window.ptSave;
+window.ptSave = function() {
+  // Save to localStorage (existing behaviour)
+  try { localStorage.setItem('nse_pt_v4', JSON.stringify(ptState)); } catch(e){}
+  // Sync open trade to Supabase
+  if (ptState.openTrade) supaPaperTradeSave(ptState.openTrade, 'open');
+  // Sync most recently closed trade (trades[0] after exit)
+  if (ptState.trades && ptState.trades[0] && ptState.trades[0].exitTime) {
+    const t = ptState.trades[0];
+    if (!t._synced) { t._synced = true; supaPaperTradeSave(t, 'closed'); }
+  }
+};
+
+// ════════════════════════════════════════════════════════════════
+// BOOT — runs after DOM is ready
+// ════════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async () => {
+  // 1. Load live signals table
   await loadInitialSignals();
   subscribeToLiveSignals();
+
+  // 2. Auto-load Upstox token from Supabase system_config
+  await supaLoadToken();
+
+  // 3. Load watchlist from Supabase (overrides localStorage if cloud has data)
+  await supaWatchlistLoad();
+
+  // 4. Load paper trades from Supabase
+  await supaPaperTradesLoad();
 });
 </script>
 
