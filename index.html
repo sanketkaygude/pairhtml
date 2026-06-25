@@ -208,6 +208,46 @@ tr:hover td { background:rgba(255,255,255,0.02); }
 ::-webkit-scrollbar { width:3px; } ::-webkit-scrollbar-track { background:var(--surface); } ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
 .refresh-time { font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); }
 
+/* ═══ TAB NAVIGATION ══════════════════════════════════════════ */
+.tab-nav { display:flex; gap:0; border-bottom:2px solid var(--border); margin-bottom:18px; flex-wrap:wrap; }
+.tab-btn { padding:11px 24px; font-family:'Space Mono',monospace; font-size:11px; font-weight:700; cursor:pointer;
+  background:transparent; border:none; border-bottom:3px solid transparent; color:var(--muted);
+  transition:all 0.2s; letter-spacing:0.5px; white-space:nowrap; margin-bottom:-2px; }
+.tab-btn:hover { color:var(--text); }
+.tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
+.tab-btn .tb { background:var(--accent); color:var(--bg); font-size:8px; padding:1px 5px; border-radius:10px; margin-left:5px; }
+.tab-page { display:none; }
+.tab-page.active { display:block; }
+
+/* ═══ PAIR DISCOVERY PAGE ════════════════════════════════════ */
+.discovery-toolbar { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:16px 18px; margin-bottom:14px; display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+.disco-label { font-family:'Space Mono',monospace; font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; white-space:nowrap; }
+.disco-input { background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:6px 10px; border-radius:4px; font-family:'Space Mono',monospace; font-size:11px; width:80px; outline:none; transition:border 0.2s; }
+.disco-input:focus { border-color:var(--accent); }
+.disco-scan-btn { background:var(--accent); border:none; color:var(--bg); padding:9px 22px; border-radius:4px; font-family:'Syne',sans-serif; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.disco-scan-btn:hover { opacity:0.85; }
+.disco-scan-btn:disabled { opacity:0.4; cursor:not-allowed; }
+.disco-progress { font-family:'Space Mono',monospace; font-size:10px; color:var(--accent3); min-width:200px; }
+.disco-stats { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+.disco-chip { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:6px 14px; font-family:'Space Mono',monospace; font-size:10px; }
+.disco-chip b { color:var(--accent); }
+.disco-table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:16px; overflow-x:auto; }
+.disco-tbl { width:100%; border-collapse:collapse; min-width:860px; }
+.disco-tbl th { font-family:'Space Mono',monospace; font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; padding:8px 10px; text-align:left; border-bottom:1px solid var(--border); cursor:pointer; user-select:none; white-space:nowrap; }
+.disco-tbl th:hover { color:var(--accent); }
+.disco-tbl th.sa::after { content:' ↑'; color:var(--accent); }
+.disco-tbl th.sd::after { content:' ↓'; color:var(--accent); }
+.disco-tbl td { font-family:'Space Mono',monospace; font-size:11px; padding:8px 10px; border-bottom:1px solid rgba(30,37,48,0.5); }
+.disco-tbl tr:hover td { background:rgba(255,255,255,0.02); }
+.disco-go { background:var(--accent); border:none; color:var(--bg); padding:4px 12px; border-radius:3px; font-family:'Syne',sans-serif; font-size:10px; font-weight:700; cursor:pointer; }
+.disco-go:hover { opacity:0.8; }
+.disco-sec-pill { font-size:8px; font-family:'Space Mono',monospace; padding:2px 7px; border-radius:10px; border:1px solid var(--border); color:var(--muted); }
+.disco-sector-filter { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:12px; }
+.disco-sf { background:var(--surface2); border:1px solid var(--border); color:var(--muted); padding:5px 12px; border-radius:20px; font-family:'Space Mono',monospace; font-size:9px; cursor:pointer; transition:all 0.2s; }
+.disco-sf:hover { border-color:var(--accent); color:var(--accent); }
+.disco-sf.active { background:var(--accent); border-color:var(--accent); color:var(--bg); font-weight:700; }
+.disco-hint { font-family:'Space Mono',monospace; font-size:9px; color:var(--muted); padding:10px 14px; background:rgba(77,171,247,0.04); border:1px solid rgba(77,171,247,0.12); border-radius:6px; line-height:1.7; margin-bottom:14px; }
+
 /* ── % SPREAD RIBBON ────────────────────────── */
 .pct-spread-bar { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px 16px; margin-bottom:12px; display:none; }
 .pct-spread-bar.show { display:block; }
@@ -500,6 +540,17 @@ tr:hover td { background:rgba(255,255,255,0.02); }
   </div>
 </header>
 
+<!-- ══ TAB NAVIGATION ════════════════════════════════════════ -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('analyzer')" id="tab-btn-analyzer">⚡ ANALYZER</button>
+  <button class="tab-btn" onclick="switchTab('discovery')" id="tab-btn-discovery">🔍 PAIR DISCOVERY <span class="tb" id="disco-found-badge"></span></button>
+  <button class="tab-btn" onclick="switchTab('watchlist')" id="tab-btn-watchlist">📋 WATCHLIST</button>
+  <button class="tab-btn" onclick="switchTab('paper')" id="tab-btn-paper">📊 PAPER TRADING</button>
+</div>
+
+<!-- ══ TAB: ANALYZER (existing content) ══════════════════════ -->
+<div class="tab-page active" id="tab-analyzer">
+
 <!-- ── UPSTOX CONNECT ─────────────────────────────────────── -->
 <div class="upstox-bar">
   <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;">// Upstox Live Market Connection</div>
@@ -520,13 +571,8 @@ tr:hover td { background:rgba(255,255,255,0.02); }
 </div>
 
 <!-- ── HISTORICAL DATA CACHE STATUS ───────────────────────── -->
-<div id="hdc-status-bar" style="
-  background:var(--surface); border:1px solid var(--border); border-radius:6px;
-  padding:7px 16px; margin-bottom:10px; display:flex; align-items:center; gap:8px;
-  flex-wrap:wrap; font-family:'Space Mono',monospace; font-size:9px; color:var(--muted);
-  letter-spacing:0.5px;">
-  <span style="color:var(--accent3)">📦 Cache:</span>
-  <span>Loading cache info…</span>
+<div id="hdc-status-bar" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:7px 16px;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);">
+  <span style="color:var(--accent3)">📦 Cache:</span><span>Loading…</span>
 </div>
 
 <!-- ── TOKEN GUIDE MODAL ──────────────────────────────────── -->
@@ -1086,6 +1132,100 @@ tr:hover td { background:rgba(255,255,255,0.02); }
   <button class="notif-clear-btn" onclick="clearNotifLog()">✕ Clear All Alerts</button>
 </div>
 
+</div><!-- /tab-analyzer -->
+
+<!-- ══ TAB: PAIR DISCOVERY ════════════════════════════════════ -->
+<div class="tab-page" id="tab-discovery">
+
+  <div class="disco-hint">
+    🔍 <strong>Pair Discovery Engine</strong> — Scans 200+ NSE pairs across 13 sectors using real Upstox historical data (or simulation if not connected).
+    Results are ranked by a composite score combining Cointegration (p-value), Correlation (ρ), Z-Score magnitude, and Half-Life.
+    Connect Upstox above for real data, then hit <strong>▶ Bulk Scan</strong>.
+  </div>
+
+  <!-- Toolbar -->
+  <div class="discovery-toolbar">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span class="disco-label">Min Corr (ρ)</span>
+      <input class="disco-input" id="disco-min-corr" type="number" value="0.70" min="0.3" max="0.99" step="0.05"/>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span class="disco-label">Max P-val</span>
+      <input class="disco-input" id="disco-max-pval" type="number" value="0.10" min="0.01" max="0.50" step="0.01"/>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span class="disco-label">Min |Z|</span>
+      <input class="disco-input" id="disco-min-z" type="number" value="0.0" min="0" max="4" step="0.5"/>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span class="disco-label">Timeframe</span>
+      <select id="disco-tf" class="disco-input" style="width:90px;">
+        <option value="30">30 days</option>
+        <option value="60">60 days</option>
+        <option value="90" selected>90 days</option>
+        <option value="180">180 days</option>
+      </select>
+    </div>
+    <button class="disco-scan-btn" id="disco-scan-btn" onclick="discoScan()">▶ Bulk Scan</button>
+    <button onclick="discoStop()" id="disco-stop-btn" style="display:none;background:var(--red);border:none;color:#fff;padding:9px 18px;border-radius:4px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">⏹ Stop</button>
+    <span class="disco-progress" id="disco-progress">Ready — connect Upstox &amp; click Bulk Scan</span>
+  </div>
+
+  <!-- Sector filter -->
+  <div class="disco-sector-filter" id="disco-sector-filter">
+    <button class="disco-sf active" data-s="All" onclick="discoFilterSector('All')">All</button>
+    <button class="disco-sf" data-s="Banking" onclick="discoFilterSector('Banking')">Banking</button>
+    <button class="disco-sf" data-s="IT" onclick="discoFilterSector('IT')">IT</button>
+    <button class="disco-sf" data-s="Auto" onclick="discoFilterSector('Auto')">Auto</button>
+    <button class="disco-sf" data-s="Pharma" onclick="discoFilterSector('Pharma')">Pharma</button>
+    <button class="disco-sf" data-s="Energy" onclick="discoFilterSector('Energy')">Energy</button>
+    <button class="disco-sf" data-s="FMCG" onclick="discoFilterSector('FMCG')">FMCG</button>
+    <button class="disco-sf" data-s="Metal" onclick="discoFilterSector('Metal')">Metal</button>
+    <button class="disco-sf" data-s="Realty" onclick="discoFilterSector('Realty')">Realty</button>
+    <button class="disco-sf" data-s="Finance" onclick="discoFilterSector('Finance')">Finance</button>
+    <button class="disco-sf" data-s="Infra" onclick="discoFilterSector('Infra')">Infra</button>
+    <button class="disco-sf" data-s="Cement" onclick="discoFilterSector('Cement')">Cement</button>
+    <button class="disco-sf" data-s="Telecom" onclick="discoFilterSector('Telecom')">Telecom</button>
+    <button class="disco-sf" data-s="Retail" onclick="discoFilterSector('Retail')">Retail</button>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="disco-stats" id="disco-stats" style="display:none;">
+    <div class="disco-chip">Total scanned: <b id="ds-total">0</b></div>
+    <div class="disco-chip">Cointegrated: <b id="ds-coint">0</b></div>
+    <div class="disco-chip">High corr (≥0.80): <b id="ds-hicorr">0</b></div>
+    <div class="disco-chip">Tradeable signals: <b id="ds-signal">0</b></div>
+    <div class="disco-chip" style="color:var(--muted)">Sorted by Score ↓</div>
+  </div>
+
+  <!-- Results table -->
+  <div class="disco-table-wrap">
+    <table class="disco-tbl" id="disco-tbl">
+      <thead><tr>
+        <th onclick="discoSort('pair')" id="dth-pair">PAIR</th>
+        <th onclick="discoSort('sector')" id="dth-sector">SECTOR</th>
+        <th onclick="discoSort('corr')" id="dth-corr" class="sd">CORR (ρ)</th>
+        <th onclick="discoSort('z')" id="dth-z">|Z-SCORE|</th>
+        <th onclick="discoSort('pval')" id="dth-pval">COINT P</th>
+        <th onclick="discoSort('hl')" id="dth-hl">HALF-LIFE</th>
+        <th onclick="discoSort('score')" id="dth-score">SCORE</th>
+        <th>SIGNAL</th>
+        <th>SOURCE</th>
+        <th>ACTION</th>
+      </tr></thead>
+      <tbody id="disco-tbody">
+        <tr><td colspan="10" style="text-align:center;padding:40px;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);">
+          Click <strong style="color:var(--accent)">▶ Bulk Scan</strong> to discover top cointegrated pairs from 200+ NSE stocks.
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /tab-discovery -->
+
+<!-- ══ TAB: WATCHLIST ════════════════════════════════════════ -->
+<div class="tab-page" id="tab-watchlist">
+
 <!-- ══ WATCHLIST ══════════════════════════════════════════════ -->
 <div class="wl-container">
   <div class="wl-header">
@@ -1121,6 +1261,11 @@ tr:hover td { background:rgba(255,255,255,0.02); }
     </div>
   </div>
 </div>
+
+</div><!-- /tab-watchlist -->
+
+<!-- ══ TAB: PAPER TRADING ════════════════════════════════════ -->
+<div class="tab-page" id="tab-paper">
 
 <!-- ══ PAPER TRADING ENGINE ══════════════════════════════════ -->
 <div class="pt-container" id="pt-container">
@@ -1259,6 +1404,8 @@ tr:hover td { background:rgba(255,255,255,0.02); }
   </div>
 
 </div><!-- /pt-container -->
+
+</div><!-- /tab-paper -->
 
 </div><!-- /wrapper -->
 
@@ -2093,95 +2240,28 @@ function getDateLabels(n) {
 }
 
 // ═══ PERSISTENT HISTORICAL DATA CACHE ═══════════════════════
-// Strategy: store candles up to yesterday in localStorage.
-// On each fetch, only pull NEW candles since the cache date.
-// This means 44 pairs → at most 88 tiny "recent" fetches instead of 88 full fetches.
-//
-// Cache schema (per symbol):
-//   { candles: [{date, close}], cachedUpTo: "YYYY-MM-DD", fetchedAt: timestamp }
-// Cache key: "hdc_v1_SYMBOL"
-
 const HDC_VERSION = 'hdc_v1_';
-const HDC_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 1 day — always refresh today's slice
-
-function _hdcKey(symbol) { return HDC_VERSION + symbol; }
-
-function hdcGet(symbol) {
-  try {
-    const raw = localStorage.getItem(_hdcKey(symbol));
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch(e) { return null; }
+function _hdcKey(s) { return HDC_VERSION+s; }
+function hdcGet(symbol) { try { const r=localStorage.getItem(_hdcKey(symbol)); return r?JSON.parse(r):null; } catch(e){return null;} }
+function hdcSet(symbol,candles) {
+  const y=new Date(); y.setDate(y.getDate()-1);
+  const yStr=y.toISOString().split('T')[0];
+  const toStore=candles.filter(c=>c.date<=yStr);
+  const cachedUpTo=toStore.length?toStore[toStore.length-1].date:null;
+  if(!cachedUpTo) return;
+  try { localStorage.setItem(_hdcKey(symbol),JSON.stringify({candles:toStore,cachedUpTo,fetchedAt:Date.now()})); }
+  catch(e){ try{ const ks=Object.keys(localStorage).filter(k=>k.startsWith(HDC_VERSION)); if(ks.length) localStorage.removeItem(ks[0]); localStorage.setItem(_hdcKey(symbol),JSON.stringify({candles:toStore,cachedUpTo,fetchedAt:Date.now()})); }catch(e2){} }
 }
-
-function hdcSet(symbol, candles) {
-  // Only cache up to yesterday's date (today's candle might not be final)
-  const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-  const yStr = yesterday.toISOString().split('T')[0];
-  // Filter to candles up to yesterday
-  const toStore = candles.filter(c => c.date <= yStr);
-  const cachedUpTo = toStore.length ? toStore[toStore.length - 1].date : null;
-  if (!cachedUpTo) return; // nothing worth caching
-  try {
-    const entry = { candles: toStore, cachedUpTo, fetchedAt: Date.now() };
-    localStorage.setItem(_hdcKey(symbol), JSON.stringify(entry));
-  } catch(e) {
-    // localStorage full? clear oldest entries
-    try {
-      const keys = Object.keys(localStorage).filter(k => k.startsWith(HDC_VERSION));
-      if (keys.length > 0) { localStorage.removeItem(keys[0]); }
-      localStorage.setItem(_hdcKey(symbol), JSON.stringify({ candles: toStore, cachedUpTo, fetchedAt: Date.now() }));
-    } catch(e2) { /* silent */ }
-  }
-}
-
-function hdcClear() {
-  const keys = Object.keys(localStorage).filter(k => k.startsWith(HDC_VERSION));
-  keys.forEach(k => localStorage.removeItem(k));
-  addLog(`Cache cleared: ${keys.length} symbols removed`, 'info');
-}
-
-function hdcStats() {
-  const keys = Object.keys(localStorage).filter(k => k.startsWith(HDC_VERSION));
-  let totalCandles = 0;
-  const symbols = keys.map(k => {
-    try {
-      const d = JSON.parse(localStorage.getItem(k));
-      totalCandles += d.candles?.length || 0;
-      return k.replace(HDC_VERSION,'') + '(' + (d.candles?.length||0) + 'd)';
-    } catch(e) { return k.replace(HDC_VERSION,''); }
-  });
-  return { count: keys.length, totalCandles, symbols };
-}
-
-// Today's date string
+function hdcClear() { const ks=Object.keys(localStorage).filter(k=>k.startsWith(HDC_VERSION)); ks.forEach(k=>localStorage.removeItem(k)); addLog(`Cache cleared: ${ks.length} symbols`,`info`); }
+function hdcStats() { const ks=Object.keys(localStorage).filter(k=>k.startsWith(HDC_VERSION)); let t=0; ks.forEach(k=>{try{t+=(JSON.parse(localStorage.getItem(k)).candles?.length||0);}catch(e){}}); return{count:ks.length,totalCandles:t}; }
 function _todayStr() { return new Date().toISOString().split('T')[0]; }
-function _yesterdayStr() {
-  const d = new Date(); d.setDate(d.getDate()-1);
-  return d.toISOString().split('T')[0];
-}
-// Day after a date string
-function _nextDay(dateStr) {
-  const d = new Date(dateStr); d.setDate(d.getDate()+1);
-  return d.toISOString().split('T')[0];
-}
-
-// ── Cache Status UI ──────────────────────────────────────────
+function _yesterdayStr() { const d=new Date(); d.setDate(d.getDate()-1); return d.toISOString().split('T')[0]; }
+function _nextDay(s) { const d=new Date(s); d.setDate(d.getDate()+1); return d.toISOString().split('T')[0]; }
 function renderCacheStatus() {
-  const stats = hdcStats();
-  let el = document.getElementById('hdc-status-bar');
-  if (!el) return;
-  const yesterday = _yesterdayStr();
-  const today = _todayStr();
-  el.innerHTML = `
-    <span style="color:var(--accent3)">📦 Cache:</span>
-    <span style="color:var(--text)">${stats.count} symbols, ${stats.totalCandles} candles stored</span>
-    <span style="color:var(--muted)">·</span>
-    <span style="color:var(--muted)">Historical up to ${yesterday} · Today (${today}) fetched fresh</span>
-    <button onclick="hdcClear();renderCacheStatus();addLog('Cache wiped. Next analyze will re-fetch all.','info')"
-      style="background:transparent;border:1px solid var(--border);color:var(--red);padding:2px 10px;border-radius:3px;
-      font-family:'Space Mono',monospace;font-size:9px;cursor:pointer;margin-left:8px;">✕ Clear Cache</button>
-  `;
+  const el=document.getElementById('hdc-status-bar'); if(!el) return;
+  const s=hdcStats();
+  el.innerHTML=`<span style="color:var(--accent3)">📦 Cache:</span> <span style="color:var(--text)">${s.count} symbols · ${s.totalCandles} candles</span> <span style="color:var(--muted)">· Historical to ${_yesterdayStr()} · Today fetched fresh each session</span>
+  <button onclick="hdcClear();renderCacheStatus();" style="background:transparent;border:1px solid var(--border);color:var(--red);padding:2px 10px;border-radius:3px;font-family:'Space Mono',monospace;font-size:9px;cursor:pointer;margin-left:8px;">✕ Clear</button>`;
 }
 
 // ═══ UPSTOX HISTORICAL CANDLE FETCH (v3) ═══════════════════
@@ -2225,152 +2305,95 @@ async function fetchWithRetry(url, headers, label, maxRetries = 2) {
 }
 
 async function fetchHistoricalCandles(symbol, days) {
-  const token = getToken();
-  // Try static table first, then dynamic resolution (with alias normalization + fuzzy match)
   let instrKey = getInstrumentKey(symbol);
   if (!instrKey) instrKey = await resolveInstrumentKey(symbol);
   if (!instrKey) {
-    lastFetchError[symbol] = `No instrument key found for "${symbol}". Use its exact NSE trading symbol (e.g. HEROMOTOCO, not "Hero MotoCorp").`;
-    addLog(`No instrument key for ${symbol}. ${lastFetchError[symbol]}`, 'err');
-    return null;
+    lastFetchError[symbol] = `No instrument key found for "${symbol}".`;
+    addLog(`No instrument key for ${symbol}.`, 'err'); return null;
   }
-
-  const toStr   = _todayStr();
+  const toStr = _todayStr();
   const yesterday = _yesterdayStr();
-
-  // ── CHECK CACHE ──────────────────────────────────────────────
+  const needsDays = days + 15;
   const cached = hdcGet(symbol);
-  const needsDays = days + 15; // buffer for weekends/holidays
 
   if (cached && cached.candles && cached.candles.length > 0) {
     const cachedUpTo = cached.cachedUpTo;
-
     if (cachedUpTo >= yesterday) {
-      // Cache is fully fresh up to yesterday — only fetch today's candle
-      addLog(`${symbol}: Cache hit (${cached.candles.length}d up to ${cachedUpTo}) · fetching today only`, 'info');
+      addLog(`${symbol}: Cache hit (${cached.candles.length}d) · fetching today only`, 'info');
       const todayCandle = await _fetchCandleRange(symbol, instrKey, toStr, toStr);
-      let allCandles = [...cached.candles];
+      let all = [...cached.candles];
       if (todayCandle && todayCandle.length > 0) {
-        // Merge — avoid duplicates by date
-        const existingDates = new Set(allCandles.map(c=>c.date));
-        todayCandle.forEach(c => { if (!existingDates.has(c.date)) allCandles.push(c); });
-        addLog(`${symbol}: +${todayCandle.length} new candle(s) today · total ${allCandles.length}d ✓`, 'ok');
-      } else {
-        addLog(`${symbol}: Cache only (today not yet available or market closed) · ${allCandles.length}d`, 'info');
+        const ex = new Set(all.map(c=>c.date));
+        todayCandle.forEach(c => { if(!ex.has(c.date)) all.push(c); });
       }
-      return allCandles.slice(-needsDays);
-
+      return all.slice(-needsDays);
     } else {
-      // Cache exists but stale — fetch missing range (cachedUpTo+1 → today)
       const fetchFrom = _nextDay(cachedUpTo);
-      addLog(`${symbol}: Partial cache (${cached.candles.length}d to ${cachedUpTo}) · fetching ${fetchFrom}→${toStr}`, 'info');
-      const newCandles = await _fetchCandleRange(symbol, instrKey, toStr, fetchFrom);
-      if (newCandles && newCandles.length > 0) {
-        const existingDates = new Set(cached.candles.map(c=>c.date));
+      addLog(`${symbol}: Partial cache · fetching ${fetchFrom}→${toStr}`, 'info');
+      const newC = await _fetchCandleRange(symbol, instrKey, toStr, fetchFrom);
+      if (newC && newC.length > 0) {
+        const ex = new Set(cached.candles.map(c=>c.date));
         const merged = [...cached.candles];
-        newCandles.forEach(c => { if (!existingDates.has(c.date)) merged.push(c); });
-        merged.sort((a,b) => a.date.localeCompare(b.date));
-        // Update cache with merged data (up to yesterday)
-        hdcSet(symbol, merged);
-        addLog(`${symbol}: Merged cache+new → ${merged.length}d total ✓`, 'ok');
-        renderCacheStatus();
+        newC.forEach(c => { if(!ex.has(c.date)) merged.push(c); });
+        merged.sort((a,b)=>a.date.localeCompare(b.date));
+        hdcSet(symbol, merged); renderCacheStatus();
         return merged.slice(-needsDays);
-      } else {
-        // New fetch failed — use stale cache (better than nothing)
-        addLog(`${symbol}: New fetch failed, using stale cache (${cached.candles.length}d)`, 'info');
-        return cached.candles.slice(-needsDays);
       }
+      return cached.candles.slice(-needsDays);
     }
   }
-
-  // ── NO CACHE — full fetch ────────────────────────────────────
+  // No cache — full fetch
   const fromStr = (() => { const d=new Date(); d.setDate(d.getDate()-needsDays); return d.toISOString().split('T')[0]; })();
-  addLog(`${symbol}: No cache · full fetch ${fromStr}→${toStr}`, 'info');
+  addLog(`${symbol}: Full fetch ${fromStr}→${toStr}`, 'info');
   const result = await _fetchCandleRange(symbol, instrKey, toStr, fromStr);
-  if (result && result.length > 0) {
-    hdcSet(symbol, result); // store up to yesterday in cache
-    renderCacheStatus();
-    addLog(`${symbol}: ${result.length} candles fetched & cached ✓`, 'ok');
-  }
+  if (result && result.length > 0) { hdcSet(symbol, result); renderCacheStatus(); }
   return result;
 }
 
-// ── Internal: fetch candles from Upstox for a date range ────
 async function _fetchCandleRange(symbol, instrKey, toStr, fromStr) {
   const token = getToken();
-  // v3 format: instrument_key in URL path (pipe NOT encoded for v3 path param)
   const url = `${UPSTOX_BASE_V3}/historical-candle/${instrKey}/days/1/${toStr}/${fromStr}`;
-  addLog(`API call: ${symbol} ${fromStr}→${toStr}`, 'info');
-
+  addLog(`API: ${symbol} ${fromStr}→${toStr}`, 'info');
   try {
-    const resp = await fetchWithRetry(url, { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }, `${symbol} v3`);
+    const resp = await fetchWithRetry(url, {'Authorization':`Bearer ${token}`,'Accept':'application/json'}, `${symbol} v3`);
     if (!resp.ok) {
-      const errText = await resp.text().catch(()=>'');
-      lastFetchError[symbol] = `HTTP ${resp.status} on v3${errText ? ': '+errText.slice(0,100) : ''}`;
-      addLog(`Historical ${symbol}: HTTP ${resp.status} — ${errText.slice(0,80)}`, 'err');
+      const et = await resp.text().catch(()=>'');
+      lastFetchError[symbol] = `HTTP ${resp.status} on v3${et?': '+et.slice(0,80):''}`;
       return await _fetchCandleRangeV2(symbol, instrKey, toStr, fromStr);
     }
     const json = await resp.json();
     const candles = json?.data?.candles || [];
-    if (!candles.length) {
-      lastFetchError[symbol] = `Upstox v3 returned 0 candles for ${symbol} (${fromStr}→${toStr}).`;
-      addLog(`${symbol} v3: empty candles. Trying v2…`, 'err');
-      return await _fetchCandleRangeV2(symbol, instrKey, toStr, fromStr);
-    }
+    if (!candles.length) { return await _fetchCandleRangeV2(symbol, instrKey, toStr, fromStr); }
     const sorted = [...candles].reverse();
-    const result = sorted.map(c => ({ date: String(c[0]).split('T')[0], close: Number(c[4]) }));
     delete lastFetchError[symbol];
-    return result;
-  } catch(e) {
-    lastFetchError[symbol] = e.message;
-    addLog(`Historical ${symbol} v3 error: ${e.message}`, 'err');
-    return await _fetchCandleRangeV2(symbol, instrKey, toStr, fromStr);
-  }
+    return sorted.map(c=>({date:String(c[0]).split('T')[0],close:Number(c[4])}));
+  } catch(e) { lastFetchError[symbol]=e.message; return await _fetchCandleRangeV2(symbol,instrKey,toStr,fromStr); }
 }
 
 async function _fetchCandleRangeV2(symbol, instrKey, toStr, fromStr) {
   const token = getToken();
-  const encodedKey = encodeURIComponent(instrKey);
-  const url = `${UPSTOX_BASE}/historical-candle/${encodedKey}/day/${toStr}/${fromStr}`;
+  const url = `${UPSTOX_BASE}/historical-candle/${encodeURIComponent(instrKey)}/day/${toStr}/${fromStr}`;
   try {
-    const resp = await fetchWithRetry(url, { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }, `${symbol} v2`);
-    if (!resp.ok) {
-      const errText = await resp.text().catch(()=>'');
-      lastFetchError[symbol] = `HTTP ${resp.status} on v2 (fallback)${errText ? ': '+errText.slice(0,100) : ''}`;
-      addLog(`Historical ${symbol} v2: HTTP ${resp.status}`, 'err');
-      return null;
-    }
+    const resp = await fetchWithRetry(url, {'Authorization':`Bearer ${token}`,'Accept':'application/json'}, `${symbol} v2`);
+    if (!resp.ok) { const et=await resp.text().catch(()=>''); lastFetchError[symbol]=`HTTP ${resp.status} v2`; return null; }
     const json = await resp.json();
     const candles = json?.data?.candles || [];
-    if (!candles.length) {
-      lastFetchError[symbol] = `Both v3 and v2 returned 0 candles for ${symbol}.`;
-      addLog(`${symbol} v2: empty candles`, 'err');
-      return null;
-    }
+    if (!candles.length) { lastFetchError[symbol]='v2: 0 candles'; return null; }
     const sorted = [...candles].reverse();
-    const result = sorted.map(c => ({ date: String(c[0]).split('T')[0], close: Number(c[4]) }));
-    addLog(`${symbol}: ${result.length} candles from v2 ✓`, 'ok');
     delete lastFetchError[symbol];
-    return result;
-  } catch(e) {
-    lastFetchError[symbol] = e.message;
-    addLog(`Historical ${symbol} v2 error: ${e.message}`, 'err');
-    return null;
-  }
+    return sorted.map(c=>({date:String(c[0]).split('T')[0],close:Number(c[4])}));
+  } catch(e) { lastFetchError[symbol]=e.message; return null; }
 }
 
-// v2 fallback — now delegated to _fetchCandleRangeV2 (kept for any external callers)
+// v2 compat shim
 async function fetchHistoricalCandlesV2(symbol, instrKey, days, toStr, fromStr) {
   return _fetchCandleRangeV2(symbol, instrKey, toStr, fromStr);
 }
 
 async function fetchSwingHistorical(s1, s2, days) {
-  const c1Cached = hdcGet(s1), c2Cached = hdcGet(s2);
-  const y = _yesterdayStr();
-  const s1Hit = c1Cached && c1Cached.cachedUpTo >= y;
-  const s2Hit = c2Cached && c2Cached.cachedUpTo >= y;
-  const cacheNote = (s1Hit && s2Hit) ? ' [cache+today only]' : (s1Hit||s2Hit) ? ' [partial cache]' : ' [full fetch]';
-  addLog(`${s1}/${s2}: ${days}-day historical${cacheNote}`, 'info');
+  const s1H=hdcGet(s1), s2H=hdcGet(s2), y=_yesterdayStr();
+  const note=(s1H?.cachedUpTo>=y&&s2H?.cachedUpTo>=y)?'[cache+today]':(s1H||s2H)?'[partial cache]':'[full fetch]';
+  addLog(`${s1}/${s2}: ${days}d historical ${note}`, 'info');
 
   // Fetch both independently so a failure in one doesn't abort the other
   const [c1Result, c2Result] = await Promise.allSettled([
@@ -4302,7 +4325,7 @@ function stopWatchlistTimer() {
 // ═══ INIT ════════════════════════════════════════════════════
 populateSelects();
 renderPairCards();
-renderCacheStatus(); // show cache stats on load
+renderCacheStatus();
 // Pre-select first pair so Analyze is ready immediately
 pickPair('HDFCBANK', 'ICICIBANK', 'Banking');
 
@@ -4381,6 +4404,414 @@ startDivRefresh();
 ptLoad();
 ptRender();
 if (ptState.openTrade) document.getElementById('pt-exit-btn').disabled = false;
+
+// ═══ TAB NAVIGATION ══════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('tab-btn-' + name).classList.add('active');
+}
+
+// ═══ PAIR DISCOVERY ENGINE ═══════════════════════════════════
+// 200+ curated NSE pairs across 13 sectors
+const DISCOVERY_PAIRS = [
+  // ── Banking ──────────────────────────────────────────────
+  {p1:'HDFCBANK',  p2:'ICICIBANK',  sector:'Banking'},
+  {p1:'HDFCBANK',  p2:'AXISBANK',   sector:'Banking'},
+  {p1:'HDFCBANK',  p2:'KOTAKBANK',  sector:'Banking'},
+  {p1:'ICICIBANK', p2:'AXISBANK',   sector:'Banking'},
+  {p1:'ICICIBANK', p2:'KOTAKBANK',  sector:'Banking'},
+  {p1:'AXISBANK',  p2:'KOTAKBANK',  sector:'Banking'},
+  {p1:'SBIN',      p2:'BANKBARODA', sector:'Banking'},
+  {p1:'SBIN',      p2:'PNB',        sector:'Banking'},
+  {p1:'SBIN',      p2:'CANBK',      sector:'Banking'},
+  {p1:'SBIN',      p2:'AXISBANK',   sector:'Banking'},
+  {p1:'BANKBARODA',p2:'PNB',        sector:'Banking'},
+  {p1:'BANKBARODA',p2:'CANBK',      sector:'Banking'},
+  {p1:'PNB',       p2:'CANBK',      sector:'Banking'},
+  {p1:'INDUSINDBK',p2:'FEDERALBNK', sector:'Banking'},
+  {p1:'INDUSINDBK',p2:'BANDHANBNK', sector:'Banking'},
+  {p1:'FEDERALBNK',p2:'BANDHANBNK', sector:'Banking'},
+  {p1:'HDFCBANK',  p2:'SBIN',       sector:'Banking'},
+  {p1:'ICICIBANK', p2:'SBIN',       sector:'Banking'},
+  // ── IT ───────────────────────────────────────────────────
+  {p1:'TCS',      p2:'INFY',        sector:'IT'},
+  {p1:'TCS',      p2:'WIPRO',       sector:'IT'},
+  {p1:'TCS',      p2:'HCLTECH',     sector:'IT'},
+  {p1:'TCS',      p2:'TECHM',       sector:'IT'},
+  {p1:'INFY',     p2:'WIPRO',       sector:'IT'},
+  {p1:'INFY',     p2:'HCLTECH',     sector:'IT'},
+  {p1:'INFY',     p2:'TECHM',       sector:'IT'},
+  {p1:'WIPRO',    p2:'HCLTECH',     sector:'IT'},
+  {p1:'WIPRO',    p2:'TECHM',       sector:'IT'},
+  {p1:'HCLTECH',  p2:'TECHM',       sector:'IT'},
+  // ── Auto ─────────────────────────────────────────────────
+  {p1:'TATAMOTORS',p2:'MARUTI',     sector:'Auto'},
+  {p1:'TATAMOTORS',p2:'M&M',        sector:'Auto'},
+  {p1:'TATAMOTORS',p2:'BAJAJ-AUTO', sector:'Auto'},
+  {p1:'TATAMOTORS',p2:'HEROMOTOCO', sector:'Auto'},
+  {p1:'MARUTI',    p2:'M&M',        sector:'Auto'},
+  {p1:'MARUTI',    p2:'BAJAJ-AUTO', sector:'Auto'},
+  {p1:'MARUTI',    p2:'HEROMOTOCO', sector:'Auto'},
+  {p1:'BAJAJ-AUTO',p2:'HEROMOTOCO', sector:'Auto'},
+  {p1:'BAJAJ-AUTO',p2:'M&M',        sector:'Auto'},
+  {p1:'M&M',       p2:'HEROMOTOCO', sector:'Auto'},
+  // ── Pharma ───────────────────────────────────────────────
+  {p1:'SUNPHARMA', p2:'DRREDDY',    sector:'Pharma'},
+  {p1:'SUNPHARMA', p2:'CIPLA',      sector:'Pharma'},
+  {p1:'SUNPHARMA', p2:'DIVISLAB',   sector:'Pharma'},
+  {p1:'SUNPHARMA', p2:'LUPIN',      sector:'Pharma'},
+  {p1:'SUNPHARMA', p2:'AUROPHARMA', sector:'Pharma'},
+  {p1:'DRREDDY',   p2:'CIPLA',      sector:'Pharma'},
+  {p1:'DRREDDY',   p2:'DIVISLAB',   sector:'Pharma'},
+  {p1:'DRREDDY',   p2:'LUPIN',      sector:'Pharma'},
+  {p1:'CIPLA',     p2:'LUPIN',      sector:'Pharma'},
+  {p1:'CIPLA',     p2:'AUROPHARMA', sector:'Pharma'},
+  {p1:'LUPIN',     p2:'AUROPHARMA', sector:'Pharma'},
+  {p1:'DIVISLAB',  p2:'DRREDDY',    sector:'Pharma'},
+  {p1:'APOLLOHOSP',p2:'SUNPHARMA',  sector:'Pharma'},
+  // ── Energy ───────────────────────────────────────────────
+  {p1:'IOC',      p2:'BPCL',        sector:'Energy'},
+  {p1:'IOC',      p2:'HPCL',        sector:'Energy'},
+  {p1:'BPCL',     p2:'HPCL',        sector:'Energy'},
+  {p1:'NTPC',     p2:'POWERGRID',   sector:'Energy'},
+  {p1:'NTPC',     p2:'ADANIGREEN',  sector:'Energy'},
+  {p1:'NTPC',     p2:'TATAPOWER',   sector:'Energy'},
+  {p1:'POWERGRID',p2:'ADANIGREEN',  sector:'Energy'},
+  {p1:'RELIANCE', p2:'ONGC',        sector:'Energy'},
+  {p1:'ONGC',     p2:'IOC',         sector:'Energy'},
+  {p1:'GAIL',     p2:'IOC',         sector:'Energy'},
+  {p1:'GAIL',     p2:'BPCL',        sector:'Energy'},
+  {p1:'GAIL',     p2:'PETRONET',    sector:'Energy'},
+  {p1:'BPCL',     p2:'ONGC',        sector:'Energy'},
+  // ── FMCG ─────────────────────────────────────────────────
+  {p1:'HINDUNILVR',p2:'ITC',        sector:'FMCG'},
+  {p1:'HINDUNILVR',p2:'BRITANNIA',  sector:'FMCG'},
+  {p1:'HINDUNILVR',p2:'NESTLEIND',  sector:'FMCG'},
+  {p1:'HINDUNILVR',p2:'DABUR',      sector:'FMCG'},
+  {p1:'HINDUNILVR',p2:'MARICO',     sector:'FMCG'},
+  {p1:'ITC',      p2:'BRITANNIA',   sector:'FMCG'},
+  {p1:'ITC',      p2:'NESTLEIND',   sector:'FMCG'},
+  {p1:'ITC',      p2:'TATACONSUM',  sector:'FMCG'},
+  {p1:'BRITANNIA',p2:'NESTLEIND',   sector:'FMCG'},
+  {p1:'BRITANNIA',p2:'DABUR',       sector:'FMCG'},
+  {p1:'MARICO',   p2:'DABUR',       sector:'FMCG'},
+  {p1:'MARICO',   p2:'COLPAL',      sector:'FMCG'},
+  {p1:'DABUR',    p2:'COLPAL',      sector:'FMCG'},
+  // ── Metal ─────────────────────────────────────────────────
+  {p1:'TATASTEEL',p2:'JSWSTEEL',    sector:'Metal'},
+  {p1:'TATASTEEL',p2:'HINDALCO',    sector:'Metal'},
+  {p1:'TATASTEEL',p2:'VEDL',        sector:'Metal'},
+  {p1:'TATASTEEL',p2:'SAIL',        sector:'Metal'},
+  {p1:'JSWSTEEL', p2:'HINDALCO',    sector:'Metal'},
+  {p1:'JSWSTEEL', p2:'VEDL',        sector:'Metal'},
+  {p1:'JSWSTEEL', p2:'SAIL',        sector:'Metal'},
+  {p1:'HINDALCO', p2:'VEDL',        sector:'Metal'},
+  {p1:'HINDALCO', p2:'NALCO',       sector:'Metal'},
+  {p1:'NMDC',     p2:'TATASTEEL',   sector:'Metal'},
+  {p1:'NMDC',     p2:'JSWSTEEL',    sector:'Metal'},
+  {p1:'VEDL',     p2:'HINDALCO',    sector:'Metal'},
+  // ── Realty ───────────────────────────────────────────────
+  {p1:'DLF',      p2:'GODREJPROP',  sector:'Realty'},
+  {p1:'DLF',      p2:'PRESTIGE',    sector:'Realty'},
+  {p1:'DLF',      p2:'OBEROIRLTY',  sector:'Realty'},
+  {p1:'DLF',      p2:'LODHA',       sector:'Realty'},
+  {p1:'DLF',      p2:'PHOENIXLTD',  sector:'Realty'},
+  {p1:'GODREJPROP',p2:'PRESTIGE',   sector:'Realty'},
+  {p1:'GODREJPROP',p2:'OBEROIRLTY', sector:'Realty'},
+  {p1:'GODREJPROP',p2:'LODHA',      sector:'Realty'},
+  {p1:'PRESTIGE', p2:'OBEROIRLTY',  sector:'Realty'},
+  {p1:'PRESTIGE', p2:'LODHA',       sector:'Realty'},
+  // ── Finance (NBFCs) ───────────────────────────────────────
+  {p1:'BAJFINANCE',p2:'BAJAJFINSV', sector:'Finance'},
+  {p1:'BAJFINANCE',p2:'CHOLAFIN',   sector:'Finance'},
+  {p1:'BAJFINANCE',p2:'MUTHOOTFIN', sector:'Finance'},
+  {p1:'BAJAJFINSV',p2:'CHOLAFIN',   sector:'Finance'},
+  {p1:'BAJAJFINSV',p2:'MUTHOOTFIN', sector:'Finance'},
+  {p1:'CHOLAFIN', p2:'MUTHOOTFIN',  sector:'Finance'},
+  {p1:'BAJFINANCE',p2:'HDFCAMC',    sector:'Finance'},
+  {p1:'HDFC',     p2:'BAJFINANCE',  sector:'Finance'},
+  {p1:'LICIHSGFIN',p2:'CHOLAFIN',   sector:'Finance'},
+  // ── Infra / Capital Goods ────────────────────────────────
+  {p1:'LT',       p2:'SIEMENS',     sector:'Infra'},
+  {p1:'LT',       p2:'ABB',         sector:'Infra'},
+  {p1:'LT',       p2:'BHEL',        sector:'Infra'},
+  {p1:'LT',       p2:'HAL',         sector:'Infra'},
+  {p1:'LT',       p2:'BEL',         sector:'Infra'},
+  {p1:'SIEMENS',  p2:'ABB',         sector:'Infra'},
+  {p1:'SIEMENS',  p2:'BHEL',        sector:'Infra'},
+  {p1:'ABB',      p2:'BHEL',        sector:'Infra'},
+  {p1:'HAL',      p2:'BEL',         sector:'Infra'},
+  {p1:'HAL',      p2:'BHEL',        sector:'Infra'},
+  {p1:'BEL',      p2:'BHEL',        sector:'Infra'},
+  {p1:'LT',       p2:'ADANIPORTS',  sector:'Infra'},
+  // ── Cement ───────────────────────────────────────────────
+  {p1:'ULTRACEMCO',p2:'AMBUJACEM',  sector:'Cement'},
+  {p1:'ULTRACEMCO',p2:'ACC',        sector:'Cement'},
+  {p1:'ULTRACEMCO',p2:'GRASIM',     sector:'Cement'},
+  {p1:'ULTRACEMCO',p2:'SHREECEM',   sector:'Cement'},
+  {p1:'AMBUJACEM',p2:'ACC',         sector:'Cement'},
+  {p1:'AMBUJACEM',p2:'RAMCOCEM',    sector:'Cement'},
+  {p1:'ACC',      p2:'RAMCOCEM',    sector:'Cement'},
+  {p1:'GRASIM',   p2:'ULTRACEMCO',  sector:'Cement'},
+  {p1:'SHREECEM', p2:'AMBUJACEM',   sector:'Cement'},
+  // ── Telecom ──────────────────────────────────────────────
+  {p1:'BHARTIARTL',p2:'IDEA',       sector:'Telecom'},
+  {p1:'BHARTIARTL',p2:'TATACOMM',   sector:'Telecom'},
+  {p1:'BHARTIARTL',p2:'INDUSTOWER', sector:'Telecom'},
+  {p1:'IDEA',     p2:'TATACOMM',    sector:'Telecom'},
+  // ── Retail / Consumer ────────────────────────────────────
+  {p1:'DMART',    p2:'TRENT',       sector:'Retail'},
+  {p1:'DMART',    p2:'ABFRL',       sector:'Retail'},
+  {p1:'TRENT',    p2:'ABFRL',       sector:'Retail'},
+  {p1:'TITAN',    p2:'TRENT',       sector:'Retail'},
+  {p1:'TITAN',    p2:'DMART',       sector:'Retail'},
+  {p1:'TITAN',    p2:'KALYAN',      sector:'Retail'},
+  {p1:'ZOMATO',   p2:'SWIGGY',      sector:'Retail'},
+  // ── Cross-sector high-correlation pairs ──────────────────
+  {p1:'RELIANCE', p2:'TCS',         sector:'Large Cap'},
+  {p1:'RELIANCE', p2:'HDFCBANK',    sector:'Large Cap'},
+  {p1:'TCS',      p2:'HDFCBANK',    sector:'Large Cap'},
+  {p1:'ADANIENT', p2:'ADANIPORTS',  sector:'Large Cap'},
+  {p1:'ADANIENT', p2:'ADANIGREEN',  sector:'Large Cap'},
+  {p1:'ADANIPORTS',p2:'ADANIGREEN', sector:'Large Cap'},
+  {p1:'TATASTEEL',p2:'TATAMOTORS',  sector:'Large Cap'},
+  {p1:'ASIANPAINT',p2:'BERGER',     sector:'Large Cap'},
+  {p1:'ASIANPAINT',p2:'KANSAINER',  sector:'Large Cap'},
+];
+
+// Discovery state
+let discoResults = [];
+let discoSortCol = 'score';
+let discoSortDir = 'desc';
+let discoActiveSector = 'All';
+let _discoRunning = false;
+let _discoAbort = false;
+
+function discoStop() {
+  _discoAbort = true;
+  document.getElementById('disco-stop-btn').style.display = 'none';
+  document.getElementById('disco-scan-btn').disabled = false;
+  document.getElementById('disco-progress').textContent = 'Scan stopped.';
+}
+
+function discoFilterSector(s) {
+  discoActiveSector = s;
+  document.querySelectorAll('.disco-sf').forEach(b => b.classList.toggle('active', b.dataset.s === s));
+  discoRenderTable();
+}
+
+function discoSort(col) {
+  if (discoSortCol === col) {
+    discoSortDir = discoSortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    discoSortCol = col;
+    discoSortDir = 'desc';
+  }
+  // Update header classes
+  document.querySelectorAll('.disco-tbl th').forEach(th => { th.classList.remove('sa','sd'); });
+  const th = document.getElementById('dth-' + col);
+  if (th) th.classList.add(discoSortDir === 'asc' ? 'sa' : 'sd');
+  discoRenderTable();
+}
+
+async function discoScan() {
+  if (_discoRunning) return;
+  _discoRunning = true;
+  _discoAbort = false;
+  discoResults = [];
+
+  const minCorr = parseFloat(document.getElementById('disco-min-corr').value) || 0.70;
+  const maxPval = parseFloat(document.getElementById('disco-max-pval').value) || 0.10;
+  const minZ    = parseFloat(document.getElementById('disco-min-z').value) || 0;
+  const days    = parseInt(document.getElementById('disco-tf').value) || 90;
+
+  document.getElementById('disco-scan-btn').disabled = true;
+  document.getElementById('disco-stop-btn').style.display = 'inline-block';
+  document.getElementById('disco-stats').style.display = 'none';
+  document.getElementById('disco-tbody').innerHTML =
+    '<tr><td colspan="10" style="text-align:center;padding:30px;font-family:\'Space Mono\',monospace;font-size:10px;color:var(--accent3);">⏳ Scanning pairs…</td></tr>';
+
+  const total = DISCOVERY_PAIRS.length;
+
+  for (let i = 0; i < total; i++) {
+    if (_discoAbort) break;
+    const pair = DISCOVERY_PAIRS[i];
+    document.getElementById('disco-progress').textContent =
+      `Scanning ${i+1}/${total}: ${pair.p1}/${pair.p2}…`;
+
+    let p1arr, p2arr, z=0, corr=0, hl=999, pval=1.0, dataSource='SIM';
+
+    if (isConnected) {
+      try {
+        const result = await fetchSwingHistorical(pair.p1, pair.p2, days);
+        if (result && result.p1.length > 5) {
+          p1arr = result.p1; p2arr = result.p2;
+          dataSource = 'REAL';
+        }
+      } catch(e) { /* fall to sim */ }
+      await sleep(300); // stagger to avoid rate limit
+    }
+
+    if (!p1arr) {
+      // Simulated fallback
+      const seed1 = pair.p1.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+      const seed2 = pair.p2.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+      const baseCorr = 0.55 + ((seed1*seed2)%100)/300;
+      const sim = generateCorrelatedPrices(days, baseCorr, seed1, seed2);
+      p1arr = sim.p1; p2arr = sim.p2;
+      dataSource = 'SIM';
+    }
+
+    // Compute stats
+    const sp = calcSpread(p1arr, p2arr);
+    const zr = calcZscore(sp);
+    z = zr.zscores[zr.zscores.length-1];
+    corr = calcCorrelation(p1arr, p2arr);
+    hl = calcHalfLife(sp);
+    pval = calcCointegrationPval(p1arr, p2arr);
+
+    if (!isFinite(z)||isNaN(z)) z=0;
+    if (!isFinite(corr)||isNaN(corr)) corr=0;
+    if (!isFinite(hl)||isNaN(hl)) hl=999;
+    if (!isFinite(pval)||isNaN(pval)) pval=1.0;
+
+    const score = calcSignalScore(pval, z, corr, hl);
+
+    discoResults.push({
+      p1: pair.p1, p2: pair.p2, sector: pair.sector,
+      corr, z: Math.abs(z), zRaw: z, pval, hl, score: score.total,
+      dataSource
+    });
+
+    // Live partial render every 10 pairs
+    if ((i+1) % 10 === 0) discoRenderTable(true);
+  }
+
+  _discoRunning = false;
+  document.getElementById('disco-scan-btn').disabled = false;
+  document.getElementById('disco-stop-btn').style.display = 'none';
+  document.getElementById('disco-progress').textContent =
+    `✓ Scan complete — ${discoResults.length} pairs evaluated`;
+
+  // Update badge on tab
+  const passing = discoResults.filter(r =>
+    r.corr >= minCorr && r.pval <= maxPval && r.z >= minZ
+  ).length;
+  const badge = document.getElementById('disco-found-badge');
+  badge.textContent = passing;
+  badge.style.display = passing ? 'inline' : 'none';
+
+  discoRenderTable();
+  discoRenderStats();
+}
+
+function discoRenderStats() {
+  const minCorr = parseFloat(document.getElementById('disco-min-corr').value) || 0.70;
+  const maxPval = parseFloat(document.getElementById('disco-max-pval').value) || 0.10;
+  const minZ    = parseFloat(document.getElementById('disco-min-z').value) || 0;
+
+  const total = discoResults.length;
+  const coint = discoResults.filter(r => r.pval < 0.05).length;
+  const hiCorr = discoResults.filter(r => r.corr >= 0.80).length;
+  const signal = discoResults.filter(r => r.corr >= minCorr && r.pval <= maxPval && r.z >= minZ).length;
+
+  document.getElementById('ds-total').textContent = total;
+  document.getElementById('ds-coint').textContent = coint;
+  document.getElementById('ds-hicorr').textContent = hiCorr;
+  document.getElementById('ds-signal').textContent = signal;
+  document.getElementById('disco-stats').style.display = 'flex';
+}
+
+function discoRenderTable(partial=false) {
+  const minCorr = parseFloat(document.getElementById('disco-min-corr')?.value) || 0.70;
+  const maxPval = parseFloat(document.getElementById('disco-max-pval')?.value) || 0.10;
+  const minZ    = parseFloat(document.getElementById('disco-min-z')?.value) || 0;
+
+  let rows = discoResults.filter(r =>
+    (discoActiveSector === 'All' || r.sector === discoActiveSector) &&
+    r.corr >= minCorr && r.pval <= maxPval && r.z >= minZ
+  );
+
+  // Sort
+  rows.sort((a, b) => {
+    let va = a[discoSortCol], vb = b[discoSortCol];
+    if (discoSortCol === 'pair') { va = a.p1+a.p2; vb = b.p1+b.p2; }
+    if (discoSortCol === 'sector') { va = a.sector; vb = b.sector; }
+    if (typeof va === 'string') return discoSortDir==='asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    // For pval and hl, ascending = better, so flip default
+    if (discoSortCol==='pval'||discoSortCol==='hl') {
+      return discoSortDir==='asc' ? va-vb : vb-va;
+    }
+    return discoSortDir==='asc' ? va-vb : vb-va;
+  });
+
+  const tbody = document.getElementById('disco-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;font-family:\'Space Mono\',monospace;font-size:11px;color:var(--muted);">' +
+      (discoResults.length ? 'No pairs match current filters. Try relaxing Min Corr or Max P-val.' :
+       'Click <strong style="color:var(--accent)">▶ Bulk Scan</strong> to start.') +
+      '</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map((r, i) => {
+    const cfg = MODE_CONFIG[currentMode];
+    const signal = r.zRaw < -cfg.entryZ ? 'LONG' : r.zRaw > cfg.entryZ ? 'SHORT' :
+                   Math.abs(r.zRaw) > cfg.entryZ*0.75 ? 'WATCH' : 'NEUTRAL';
+    const sigClass = signal==='LONG' ? 'pill-long' : signal==='SHORT' ? 'pill-short' :
+                     signal==='WATCH' ? 'pill-watch' : 'pill-neutral';
+    const corrColor = r.corr >= 0.85 ? 'var(--green)' : r.corr >= 0.75 ? 'var(--accent3)' : 'var(--warn)';
+    const pvalColor = r.pval < 0.05 ? 'var(--green)' : r.pval < 0.10 ? 'var(--warn)' : 'var(--red)';
+    const zColor = r.z >= 2.0 ? 'var(--accent2)' : r.z >= 1.5 ? 'var(--warn)' : 'var(--muted)';
+    const scoreColor = r.score >= 75 ? 'var(--green)' : r.score >= 50 ? 'var(--warn)' : 'var(--red)';
+    const srcColor = r.dataSource==='REAL' ? 'var(--green)' : 'var(--muted)';
+    const hlCell = r.hl > 200 ? '∞' : r.hl + 'd';
+
+    return `<tr>
+      <td style="font-weight:700;color:var(--text)">${r.p1} <span style="color:var(--muted)">/</span> ${r.p2}</td>
+      <td><span class="disco-sec-pill">${r.sector}</span></td>
+      <td style="color:${corrColor};font-weight:700">${r.corr.toFixed(3)}</td>
+      <td style="color:${zColor};font-weight:700">${r.z.toFixed(2)}</td>
+      <td style="color:${pvalColor};font-weight:${r.pval<0.05?'700':'400'}">${r.pval.toFixed(3)}${r.pval<0.05?' ✓':''}</td>
+      <td style="color:var(--accent2)">${hlCell}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="width:${r.score}px;max-width:60px;height:3px;border-radius:2px;background:${scoreColor}"></div>
+          <span style="color:${scoreColor};font-weight:700">${r.score}</span>
+        </div>
+      </td>
+      <td><span class="signal-pill ${sigClass}">${signal}</span></td>
+      <td style="color:${srcColor};font-size:9px">● ${r.dataSource}</td>
+      <td>
+        <button class="disco-go" onclick="discoAnalyze('${r.p1}','${r.p2}')">▶ Analyze</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  if (!partial) discoRenderStats();
+}
+
+function discoAnalyze(p1, p2) {
+  // Pre-register in main pair dropdowns if not already there
+  const s1el = document.getElementById('stock1');
+  const s2el = document.getElementById('stock2');
+  if (!s1el.querySelector(`option[value="${p1}"]`)) {
+    const opt = document.createElement('option'); opt.value = p1; opt.textContent = p1; s1el.appendChild(opt);
+  }
+  if (!s2el.querySelector(`option[value="${p2}"]`)) {
+    const opt = document.createElement('option'); opt.value = p2; opt.textContent = p2; s2el.appendChild(opt);
+  }
+  s1el.value = p1; s2el.value = p2;
+  // Sync pair selector UI
+  pickPair(p1, p2, 'Discovery');
+  // Switch to Analyzer tab and run
+  switchTab('analyzer');
+  // Switch to swing mode for historical analysis
+  if (currentMode !== 'swing') setMode('swing');
+  else runAnalysis();
+}
 </script>
 <!-- =========================================================================
      FRONTEND SYNC LOGIC — drop into your GitHub Pages dashboard HTML
@@ -4396,7 +4827,7 @@ if (ptState.openTrade) document.getElementById('pt-exit-btn').disabled = false;
 //   - RLS on `signals` only grants SELECT to anon (see supabase_schema.sql)
 //   - `system_config` (which holds the Upstox token) has zero anon policies
 // -----------------------------------------------------------------------
-const SUPABASE_URL = 'https://ancnqtwdtvsvsfetbjvq.supabase.co/';
+const SUPABASE_URL = https://ancnqtwdtvsvsfetbjvq.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFuY25xdHdkdHZzdnNmZXRianZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNzUxODMsImV4cCI6MjA5Nzg1MTE4M30.zv2K_lqebIv_Jq9aqUzrmth92Vx98ZISXtT_vaX8_Gc';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
